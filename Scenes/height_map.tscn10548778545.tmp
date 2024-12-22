@@ -1,0 +1,32 @@
+[gd_scene load_steps=6 format=3 uid="uid://bcs88dplgcot"]
+
+[ext_resource type="Script" uid="uid://dttgcoi57yerd" path="res://Scripts/Height_map.gd" id="1_1cd06"]
+[ext_resource type="Shader" uid="uid://dafu738q3g4em" path="res://Shader/terrain_shader.gdshader" id="1_58wqk"]
+[ext_resource type="Texture2D" uid="uid://c4sjwtljmwjed" path="res://Sprites/icon.svg" id="2_j7skb"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jok6g"]
+render_priority = 0
+shader = ExtResource("1_58wqk")
+shader_parameter/_a = ExtResource("2_j7skb")
+shader_parameter/height_ratio = 0.59
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_npm6i"]
+subdivide_width = 32
+subdivide_depth = 32
+
+[node name="HeightMap" type="Node3D"]
+
+[node name="TerrainGenerated" type="MeshInstance3D" parent="."]
+material_override = SubResource("ShaderMaterial_jok6g")
+mesh = SubResource("PlaneMesh_npm6i")
+script = ExtResource("1_1cd06")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="TerrainGenerated"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TerrainGenerated/StaticBody3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.136466, -0.504347, 0.85265, 0.0797057, 0.863501, 0.498009, -0.987433, 0, 0.158037, 1.52701, 0.650738, 0.502996)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.689405, 0.724376, 0, -0.724376, 0.689405, 0, 1.16777, 3.23338)

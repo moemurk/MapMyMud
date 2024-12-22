@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cn8jpf1bd6ksm"]
 
-[ext_resource type="Script" path="res://Scripts/Lobby.gd" id="1_a021g"]
+[ext_resource type="Script" uid="uid://ca4xdmfrnfb3t" path="res://Scripts/Lobby.gd" id="1_a021g"]
 
 [node name="TestUI" type="Node3D"]
 

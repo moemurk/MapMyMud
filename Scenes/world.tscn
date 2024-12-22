@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://dsbsfhl2hy6nr"]
 
-[ext_resource type="Script" path="res://Scripts/World.gd" id="1_8j60k"]
+[ext_resource type="Script" uid="uid://neixw7sy4al6" path="res://Scripts/World.gd" id="1_8j60k"]
 [ext_resource type="ArrayMesh" uid="uid://c2u5qpt5ysc8e" path="res://Assets/Roads/bridge_pillar.obj" id="1_a02cp"]
 [ext_resource type="PackedScene" uid="uid://dmmajjxqdjds1" path="res://Scenes/player.tscn" id="2_go701"]
 [ext_resource type="ArrayMesh" uid="uid://b6odtxae51sxs" path="res://Assets/Roads/light_curved.obj" id="3_5a7ea"]

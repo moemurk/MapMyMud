@@ -128,7 +128,9 @@ func game_start():
 func direct(to_send_pacenote: String):
 	print("I'm the %s my name is %s and I recv_direct" % [self.play_roll, self.player_name])
 	print(to_send_pacenote)
-	var to_send_pacenote_object = str_to_var(to_send_pacenote)
+	var to_send_pacenote_object:CodriverMessage = str_to_var(to_send_pacenote)
+	to_send_pacenote_object.direction # visulize here
+	#get world node, then call the funcion in network.gd
 	print(to_send_pacenote_object)
 
 @rpc("any_peer", "unreliable")
@@ -138,3 +140,7 @@ func car_move(position: Vector3, rotation: Vector3):
 		if car.name == str(remote_id):
 			car.position = position
 			car.rotation = rotation
+	if self.play_roll == Client.PlayRoll.Observer:
+		if self.team_mate_id == remote_id:
+			# 3d pos & rotation to 2d pos & rotation, then visulize
+			pass
