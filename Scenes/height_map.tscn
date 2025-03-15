@@ -1,6 +1,23 @@
-[gd_scene load_steps=2 format=3 uid="uid://bcs88dplgcot"]
+[gd_scene load_steps=5 format=3 uid="uid://bcs88dplgcot"]
 
-[ext_resource type="Script" path="res://Scripts/Height_map.gd" id="1_1cd06"]
+[ext_resource type="Script" uid="uid://dttgcoi57yerd" path="res://Scripts/Height_map.gd" id="1_1cd06"]
+[ext_resource type="Shader" uid="uid://dafu738q3g4em" path="res://Shader/terrain_shader.gdshader" id="1_58wqk"]
 
-[node name="HeightMap" type="Node2D"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jok6g"]
+render_priority = 0
+shader = ExtResource("1_58wqk")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_npm6i"]
+subdivide_width = 32
+subdivide_depth = 32
+
+[node name="HeightMap" type="Node3D"]
+
+[node name="TerrainGenerated" type="MeshInstance3D" parent="."]
+material_override = SubResource("ShaderMaterial_jok6g")
+mesh = SubResource("PlaneMesh_npm6i")
 script = ExtResource("1_1cd06")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="TerrainGenerated"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TerrainGenerated/StaticBody3D"]
