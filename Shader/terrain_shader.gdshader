@@ -2,7 +2,7 @@ shader_type spatial;
 
 uniform sampler2D _a;
 uniform sampler2D heightmap;
-uniform float height_ratio = 1.0;
+uniform float height_ratio = 0.3;
 
 void vertex() {
 	// Called for every vertex the material is visible on.

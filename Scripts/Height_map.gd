@@ -5,8 +5,8 @@ const MAP_HEIGHT = 32
 var height_map = []
 @onready var colShape = $StaticBody3D/CollisionShape3D
 @export var mesh_size = 2.0
-@export var height_ratio = 0.59
-@export var colShape_size_ratio = 1.0
+@export var height_ratio = 0.3 #default=0.59
+@export var colShape_size_ratio = 10.0 #mesh finess, default=1.0s
 
 func _ready():
 	# Create height map by noise #
