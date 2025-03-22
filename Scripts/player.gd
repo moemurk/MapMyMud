@@ -31,7 +31,7 @@ func _physics_process(delta):
 	
 func _check_camera_swith():
 	if linear_velocity.length() > 1.0:
-		if linear_velocity.dot(transform.basis.z) > 0:
+		if linear_velocity.dot(transform.basis.z) > -5.0:
 			camera_3d.current = true
 		else:
 			reverse_camera.current = true
