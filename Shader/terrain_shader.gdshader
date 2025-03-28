@@ -11,7 +11,7 @@ void vertex() {
 }
 
 void fragment() {
-	ALBEDO = texture(_a, UV*20.0).rgb;
+	ALBEDO = texture(_a, UV*5.0).rgb;
 	// Called for every pixel the material is visible on.
 }
 
