@@ -9,6 +9,7 @@ shader = ExtResource("1_58wqk")
 shader_parameter/height_ratio = 0.59
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_npm6i"]
+size = Vector2(20, 20)
 subdivide_width = 32
 subdivide_depth = 32
 
@@ -25,7 +26,7 @@ script = ExtResource("1_1cd06")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.805, 0)
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(-4.37114e-08, -0.382683, 0.92388, 0, 0.92388, 0.382683, -1, 1.67276e-08, -4.03841e-08, 1.896, 1.718, 0)
+transform = Transform3D(-4.37114e-08, -0.382683, 0.92388, 0, 0.92388, 0.382683, -1, 1.67276e-08, -4.03841e-08, 14.7908, 7.37844, 0)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.689405, 0.724376, 0, -0.724376, 0.689405, 0, 1.16777, 3.23338)
