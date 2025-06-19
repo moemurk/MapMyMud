@@ -1,6 +1,6 @@
 [gd_scene load_steps=23 format=4 uid="uid://dmmajjxqdjds1"]
 
-[ext_resource type="Script" uid="uid://cehopxur3pyhf" path="res://Scripts/Player.gd" id="1_v0iea"]
+[ext_resource type="Script" uid="uid://cehopxur3pyhf" path="res://Scripts/player.gd" id="1_v0iea"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4m4je"]
 resource_name = "tire"

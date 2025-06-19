@@ -23,6 +23,3 @@ func _ready() -> void:
 					driver_id = (team[0] as Client)._network_id
 		nissan_gtr.name = str(driver_id)
 		Network.cars.append(nissan_gtr)
-
-func abc():
-	print("aaaaaaaaaaaaaaaaaa")

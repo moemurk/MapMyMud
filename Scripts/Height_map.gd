@@ -1,12 +1,16 @@
 extends MeshInstance3D
 
-const MAP_WIDTH = 128 #default=32
-const MAP_HEIGHT = 128
+const MAP_WIDTH = 64 #default=32
+const MAP_HEIGHT = 64
 var height_map = []
 @onready var colShape = $StaticBody3D/CollisionShape3D
 @export var mesh_size = 20.0
 @export var height_ratio = 0.3 #default=0.3 (for size 2.0)
 @export var colShape_size_ratio = 5.0 #mesh finess, default=1.0
+
+@export var ctrl_spacing = 2.0 #anchor points spacing, default=2.0
+@export var lat_offset_max = 6.0 #max horizontal offset(grid), default=10.0
+@export var bake_step = 1.2 #curve sampling step(grid), default=1.5
 
 func _ready():
 	height_map = generate_heightmap_by_noise()
@@ -15,8 +19,7 @@ func _ready():
 	var paths = generate_paths(pos[0], pos[1], path_num)
 	print("start and end is:",pos)
 	print("paths are:",paths)
-	var flatten_radius = 1.0 #default = 1.0
-	flatten_paths_in_height_map(paths, flatten_radius)
+	flatten_paths_in_height_map(paths)
 	var image = Image.create(MAP_WIDTH, MAP_HEIGHT, false, Image.FORMAT_RGB8)
 	image = texture_override(image)
 	var shape = HeightMapShape3D.new()
@@ -82,37 +85,59 @@ func generate_start_end():
 		end_pos = Vector2(end_x, end_y)
 	return [start_pos, end_pos]
 
-func generate_paths(start:Vector2, end:Vector2, num_paths:int):
+func generate_paths(start:Vector2, end:Vector2, num_paths:int) -> Array:
 	var paths = []
-	for i in range(num_paths):
-		var path = []
-		var current_pos = start
-		path.append(current_pos)
-		while current_pos.distance_to(end) > 2.0: #stop when close enough
-			var direction = (end - current_pos).normalized()
-			var random_offset = Vector2(randf() - 0.5, randf() - 0.5) * 2
-			var next_step = current_pos + (direction + random_offset) * 1.0 #default=3.0
-			next_step.x = clamp(next_step.x, 0, MAP_WIDTH - 1)
-			next_step.y = clamp(next_step.y, 0, MAP_HEIGHT - 1)
-			current_pos = next_step
-			path.append(current_pos)
-		path.append(end)
-		paths.append(path)
+	var rng = RandomNumberGenerator.new()
+	rng.seed = Time.get_unix_time_from_system()
+	
+	for p_i in range(num_paths):
+		var dir = (end - start).normalized()
+		var dist = start.distance_to(end)
+		var seg_cnt = int(dist / ctrl_spacing)
+		var curve = Curve2D.new()
+		curve.add_point(start)
+		
+		# generating internal anchor points
+		for i in range(1, seg_cnt):
+			var t = float(i)/ seg_cnt
+			var base = start.lerp(end, t)
+			var strength = sin(t * PI)
+			var perp = Vector2(-dir.y, dir.x)
+			var offset = perp * rng.randf_range(-lat_offset_max, lat_offset_max) * strength
+			var pt = base + offset
+			pt.x = clamp(pt.x, 0, MAP_WIDTH - 1)
+			pt.y = clamp(pt.y, 0, MAP_HEIGHT - 1)
+			curve.add_point(pt)
+		curve.add_point(end)
+		curve.bake_interval = bake_step #backing resolution
+		var baked = curve.get_baked_points() #Curve2D.tessellate() only return turning points
+		
+		var path_points = []
+		for b in baked:
+			path_points.append(Vector2(b.x, b.y))
+		paths.append(path_points)
+		
 	return paths
 
-func flatten_paths_in_height_map(paths: Array, radius: float = 1.0):
+func flatten_paths_in_height_map(paths: Array):
+	const road_depth = -5.0
+	const road_half_width = 0.6
+	const edge_falloff = 0.5
 	for path in paths:
 		for pt in path:
 			var px = int(pt.x)
 			var py = int(pt.y)
-			for dx in range(-radius, radius + 1):
-				for dy in range(-radius, radius + 1):
+			var max_range = ceil(road_half_width + edge_falloff)
+			for dx in range(-max_range, max_range + 1):
+				for dy in range(-max_range, max_range + 1):
 					var nx = px + dx
 					var ny = py + dy
-					if nx >= 0 and nx < MAP_WIDTH and ny >= 0 and ny < MAP_HEIGHT:
-						# (Optional) If you want a circular fade, you can check distance:
-						# if Vector2(dx, dy).length() <= float(radius):
-						#     height_map[nx][ny] = -1.0
-						
-						# For a simple square, just flatten:
-						height_map[nx][ny] = -5.0
+					if nx < 0 or nx >= MAP_WIDTH or ny < 0 or ny >= MAP_HEIGHT:
+						continue
+						#height_map[nx][ny] = -5.0 # for simple square/flatten
+					var dist = Vector2(dx, dy).length()   # 0 → radius
+					if dist <= road_half_width:
+						height_map[nx][ny] = road_depth
+					elif dist <= road_half_width + edge_falloff:
+						var t = (dist - road_half_width) / edge_falloff  # 0 -> 1
+						height_map[nx][ny] = lerp(road_depth, height_map[nx][ny], t) #or smoothstep(t) to make smoother
