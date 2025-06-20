@@ -1,7 +1,7 @@
 extends MeshInstance3D
 
-const MAP_WIDTH = 64 #default=32
-const MAP_HEIGHT = 64
+const MAP_WIDTH = 128 #default=32
+const MAP_HEIGHT = 128
 var height_map = []
 @onready var colShape = $StaticBody3D/CollisionShape3D
 @export var mesh_size = 20.0
@@ -12,19 +12,25 @@ var height_map = []
 @export var lat_offset_max = 6.0 #max horizontal offset(grid), default=10.0
 @export var bake_step = 1.2 #curve sampling step(grid), default=1.5
 
+var road_depth = -5.0
+var road_half_width = 0.6 
+var edge_falloff = 0.5
+
+var start_world : Vector3
+var end_world : Vector3
+signal map_ready(start_world : Vector3, end_world : Vector3)
+
 func _ready():
 	height_map = generate_heightmap_by_noise()
 	var pos = generate_start_end()
 	var path_num = 1 #default =5
 	var paths = generate_paths(pos[0], pos[1], path_num)
-	print("start and end is:",pos)
-	print("paths are:",paths)
 	flatten_paths_in_height_map(paths)
 	var image = Image.create(MAP_WIDTH, MAP_HEIGHT, false, Image.FORMAT_RGB8)
 	image = texture_override(image)
 	var shape = HeightMapShape3D.new()
 	shape = generate_collider_shape(shape, image)
-	
+	print(pos)
 	
 func generate_heightmap_by_noise():
 	var noise = FastNoiseLite.new()
@@ -78,11 +84,16 @@ func generate_start_end():
 	var start_x = randi() % MAP_WIDTH
 	var start_y = randi() % MAP_HEIGHT
 	var start_pos = Vector2(start_x, start_y)
+	
 	var end_pos = start_pos
 	while end_pos.distance_to(start_pos) < (MAP_WIDTH / 2.0):
 		var end_x = randi() % MAP_WIDTH
 		var end_y = randi() % MAP_HEIGHT
 		end_pos = Vector2(end_x, end_y)
+	
+	var start_end_y = road_depth + 90.0
+	start_world = Vector3(start_pos.x, start_end_y, start_pos.y)
+	end_world = Vector3(end_pos.x, start_end_y, end_pos.y)
 	return [start_pos, end_pos]
 
 func generate_paths(start:Vector2, end:Vector2, num_paths:int) -> Array:
@@ -120,9 +131,6 @@ func generate_paths(start:Vector2, end:Vector2, num_paths:int) -> Array:
 	return paths
 
 func flatten_paths_in_height_map(paths: Array):
-	const road_depth = -5.0
-	const road_half_width = 0.6
-	const edge_falloff = 0.5
 	for path in paths:
 		for pt in path:
 			var px = int(pt.x)
