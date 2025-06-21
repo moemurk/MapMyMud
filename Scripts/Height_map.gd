@@ -22,15 +22,28 @@ signal map_ready(start_world : Vector3, end_world : Vector3)
 
 func _ready():
 	height_map = generate_heightmap_by_noise()
-	var pos = generate_start_end()
-	var path_num = 1 #default =5
-	var paths = generate_paths(pos[0], pos[1], path_num)
+	
+	var road_gen = RoadNetGenerator.new()
+	road_gen.map_size = Vector2(MAP_WIDTH, MAP_HEIGHT)
+	add_child(road_gen)
+	await road_gen.ready
+	var paths = road_gen.paths
+	var start_grid = road_gen.start_point
+	var goad_grid = road_gen.goal_point
+	
+	#var pos = generate_start_end()
+	#var path_num = 1 #default =5
+	#var paths = generate_paths(pos[0], pos[1], path_num)
 	flatten_paths_in_height_map(paths)
+	print(paths)
 	var image = Image.create(MAP_WIDTH, MAP_HEIGHT, false, Image.FORMAT_RGB8)
 	image = texture_override(image)
 	var shape = HeightMapShape3D.new()
 	shape = generate_collider_shape(shape, image)
-	print(pos)
+	
+	var start_end_y = road_depth + 90.0
+	start_world = Vector3(start_grid.x, start_end_y, start_grid.y)
+	end_world = Vector3(goad_grid.x, start_end_y, goad_grid.y)
 	
 func generate_heightmap_by_noise():
 	var noise = FastNoiseLite.new()
@@ -80,6 +93,7 @@ func generate_collider_shape(shape, image):
 	colShape.shape = shape
 	return shape
 
+""" #generate start & end, with paths
 func generate_start_end():
 	var start_x = randi() % MAP_WIDTH
 	var start_y = randi() % MAP_HEIGHT
@@ -129,6 +143,7 @@ func generate_paths(start:Vector2, end:Vector2, num_paths:int) -> Array:
 		paths.append(path_points)
 		
 	return paths
+"""
 
 func flatten_paths_in_height_map(paths: Array):
 	for path in paths:

@@ -3,6 +3,7 @@ shader_type spatial;
 uniform sampler2D _a;
 uniform sampler2D heightmap;
 uniform float height_ratio = 0.3;
+uniform float road_cut_off = 0.01;
 
 void vertex() {
 	// Called for every vertex the material is visible on.
@@ -11,7 +12,14 @@ void vertex() {
 }
 
 void fragment() {
-	ALBEDO = texture(_a, UV*5.0).rgb;
+	//ALBEDO = texture(_a, UV*5.0).rgb;
+	float h = texture(heightmap, UV).r;
+	if (h < road_cut_off){
+		ALBEDO = vec3(0.0);
+	}
+	else {
+		ALBEDO = texture(_a, UV*5.0).rgb;
+	}
 	// Called for every pixel the material is visible on.
 }
 

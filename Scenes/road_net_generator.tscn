@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dqb7o66ug67xi"]
+
+[ext_resource type="Script" uid="uid://dho3emhg4jsfc" path="res://Scripts/RoadNetGenerator.gd" id="1_bspl0"]
+
+[node name="Test-road" type="Node2D"]
+script = ExtResource("1_bspl0")
