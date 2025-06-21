@@ -12,8 +12,8 @@ var height_map = []
 @export var lat_offset_max = 6.0 #max horizontal offset(grid), default=10.0
 @export var bake_step = 1.2 #curve sampling step(grid), default=1.5
 
-var road_depth = -5.0
-var road_half_width = 0.6 
+var road_depth = -1.5
+var road_half_width = 1.0 
 var edge_falloff = 0.5
 
 var start_world : Vector3
@@ -26,24 +26,22 @@ func _ready():
 	var road_gen = RoadNetGenerator.new()
 	road_gen.map_size = Vector2(MAP_WIDTH, MAP_HEIGHT)
 	add_child(road_gen)
-	await road_gen.ready
 	var paths = road_gen.paths
 	var start_grid = road_gen.start_point
-	var goad_grid = road_gen.goal_point
+	var goal_grid = road_gen.goal_point
 	
 	#var pos = generate_start_end()
 	#var path_num = 1 #default =5
 	#var paths = generate_paths(pos[0], pos[1], path_num)
 	flatten_paths_in_height_map(paths)
-	print(paths)
 	var image = Image.create(MAP_WIDTH, MAP_HEIGHT, false, Image.FORMAT_RGB8)
 	image = texture_override(image)
 	var shape = HeightMapShape3D.new()
-	shape = generate_collider_shape(shape, image)
+	shape = generate_collider_shape(shape)
 	
 	var start_end_y = road_depth + 90.0
 	start_world = Vector3(start_grid.x, start_end_y, start_grid.y)
-	end_world = Vector3(goad_grid.x, start_end_y, goad_grid.y)
+	end_world = Vector3(goal_grid.x, start_end_y, goal_grid.y)
 	
 func generate_heightmap_by_noise():
 	var noise = FastNoiseLite.new()
@@ -59,38 +57,63 @@ func generate_heightmap_by_noise():
 			height_map[x].append(value)
 	return height_map
 	
-func texture_override(image):
-	for x in range(MAP_WIDTH):
-		for y in range(MAP_HEIGHT):
-			var value = height_map[x][y]
-			var gray = clamp((value + 1.0) / 2.0, 0, 1)
-			image.set_pixel(x, y, Color(gray,gray,gray))
-	var texture = ImageTexture.create_from_image(image)
+func texture_override(img: Image) -> Image:
+	var min_h :=  999.0
+	var max_h := -999.0
+	for x in MAP_WIDTH:
+		for y in MAP_HEIGHT:
+			var v = height_map[x][y]
+			min_h = min(min_h, v)
+			max_h = max(max_h, v)
+	var range = max_h - min_h
+	for x in MAP_WIDTH:
+		for y in MAP_HEIGHT:
+			var gray = (height_map[x][y] - min_h) / range   # 0~1 线性
+			img.set_pixel(x, y, Color(gray, gray, gray))
+
+	var tex = ImageTexture.create_from_image(img)
+	material_override.set_shader_parameter("heightmap", tex)
+	return img
+	
+	#var texture = ImageTexture.create_from_image(image)
+	
 	#var sprite = Sprite2D.new()
 	#sprite.scale = Vector2(10,10)
 	#sprite.position=Vector2(500,500)
 	#sprite.texture = texture
 	#add_child(sprite)
-	var address = "user://height_map.exr"
-	image.save_exr(address)
-	var height_texture = ImageTexture.create_from_image(image)
-	material_override.set_shader_parameter("heightmap", height_texture)
-	return image
+	
+	#var address = "user://height_map.exr"
+	#image.save_exr(address)
+	#var height_texture = ImageTexture.create_from_image(image)
+	#material_override.set_shader_parameter("heightmap", height_texture)
+	#return image
 
-func generate_collider_shape(shape, image):
+func generate_collider_shape(shape: HeightMapShape3D):
 	mesh.size = Vector2(mesh_size, mesh_size)
-	var collision_img = image.duplicate()
-	collision_img.convert(Image.FORMAT_RF)
-	collision_img.resize(collision_img.get_width()*colShape_size_ratio, collision_img.get_height()*colShape_size_ratio)
-	var data = collision_img.get_data().to_float32_array()
-	for i in range(0, data.size()):
-		data[i] *= height_ratio
-	shape.map_width = collision_img.get_width()
-	shape.map_depth = collision_img.get_height()
+	#var collision_img = image.duplicate()
+	#collision_img.convert(Image.FORMAT_RF)
+	#collision_img.resize(collision_img.get_width()*colShape_size_ratio, collision_img.get_height()*colShape_size_ratio)
+	var data = PackedFloat32Array()
+	data.resize(MAP_WIDTH * MAP_HEIGHT)
+	for y in range(MAP_HEIGHT):
+		for x in range(MAP_WIDTH):
+			var idx = y * MAP_WIDTH + x
+			data[idx] = height_map[x][y] * height_ratio
+	shape.map_width = MAP_WIDTH
+	shape.map_depth = MAP_HEIGHT
 	shape.map_data = data
-	var scale_ratio = mesh_size/float(collision_img.get_width())
+	var scale_ratio = mesh_size/float(MAP_WIDTH)
 	colShape.scale = Vector3(scale_ratio, 1, scale_ratio)
 	colShape.shape = shape
+	#for i in range(0, data.size()):
+		#data[i] *= height_ratio
+	#shape.map_width = collision_img.get_width()
+	#shape.map_depth = collision_img.get_height()
+	#shape.map_data = data
+	#var scale_ratio = mesh_size/float(collision_img.get_width())
+	#colShape.scale = Vector3(scale_ratio, 1, scale_ratio)
+	#colShape.shape = shape
 	return shape
 
 """ #generate start & end, with paths
@@ -164,3 +187,10 @@ func flatten_paths_in_height_map(paths: Array):
 					elif dist <= road_half_width + edge_falloff:
 						var t = (dist - road_half_width) / edge_falloff  # 0 -> 1
 						height_map[nx][ny] = lerp(road_depth, height_map[nx][ny], t) #or smoothstep(t) to make smoother
+	# --- debug ---
+	var vmin :=  999.0
+	var vmax := -999.0
+	for x in MAP_WIDTH:
+		for y in MAP_HEIGHT:
+			var v = height_map[x][y]; vmin = min(vmin, v); vmax = max(vmax, v)
+	print("height_map range:  ", vmin, "  →  ", vmax)
